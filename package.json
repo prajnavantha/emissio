@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "webpack",
-    "start" : "node server.js"
+    "start": "node server.js"
   },
   "repository": {
     "type": "git",
@@ -23,9 +23,11 @@
   "dependencies": {
     "bootstrap": "^3.3.7",
     "express": "*",
+    "font-awesome": "^4.7.0",
     "jquery": "^3.2.1",
     "react": "^15.5.4",
     "react-dom": "^15.5.4",
+    "react-router-dom": "^4.1.1",
     "socket.io": "*",
     "socket.io-client": "^2.0.1",
     "webpack": "^2.5.1"

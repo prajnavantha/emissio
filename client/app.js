@@ -4,13 +4,21 @@ var $ = require("jquery")
 var bootstrap = require('bootstrap');
 var io = require('socket.io-client')
 var bs = require('bootstrap/dist/css/bootstrap.css');
-
-var  React = require('react');
+var styles = require('./css/app.css')
+var React = require('react');
 var ReactDOM = require('react-dom');
 
-var Chat = require('./chat');
 
-ReactDOM.render(<Chat />, document.getElementById('app'));
+var AppRoute = require('./appRouter');
+
+ReactDOM.render(<AppRoute />, document.getElementById('app'));
+
+
+
+
+
+
+// ReactDOM.render(<Chat />, document.getElementById('app'));
 
 
 

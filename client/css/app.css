@@ -1,4 +1,11 @@
+@import url('../../node_modules/font-awesome/css/font-awesome.min.css');
+
 #app {
+    bottom: 2px !important;
+}
+
+
+.full-container-layout {
     position: absolute;
     left: 0;
     right: 0;
@@ -11,4 +18,86 @@
 
 .full-width {
     width: 100%;
+}
+
+.relativePosition {
+    position: relative;
+}
+
+.flexDisplay {
+    display: -webkit-box;
+    /* OLD - iOS 6-, Safari 3.1-6 */
+    display: -moz-box;
+    /* OLD - Firefox 19- (buggy but mostly works) */
+    display: -ms-flexbox;
+    /* TWEENER - IE 10 */
+    display: -webkit-flex;
+    /* NEW - Chrome */
+    display: flex;
+    /* NEW, Spec - Opera 12.1, Firefox 20+ */
+}
+
+.flex-direction-column {
+    -webkit-flex-direction: column;
+    flex-direction: column;
+}
+
+.flex-direction-row {
+    -webkit-flex-direction: row;
+    flex-direction: row;
+}
+
+.flex-justify-space-between {
+    justify-content: space-between;
+    -webkit-justify-content: space-between;
+}
+.flex-full {
+    flex: 1;
+    -webkit-flex:1;
+}
+
+
+.app-color-primary-text--white {
+    color:#fff;
+}
+
+.app-color-primary {
+    background-color: #0E2EB1 !important;
+}
+
+.app-color-secondary {
+    background-color: #fcfcfc !important;
+}
+
+
+
+
+
+
+.appWrapper {
+    height: 100%;
+}
+.form-container {
+	background-image: url('/assets/appBackground.jpg');
+    height: 100%;
+}
+
+.wrapper {
+	padding-top: 80px;
+}
+
+
+
+.fb-submit {
+  background:rgba(0, 0, 0, 0.43)
+}
+.form-signin-heading {
+  color:#fff;
+}
+
+.form-signin {
+  max-width: 380px;
+  padding: 15px 35px 45px;
+  margin: 0 auto;
+
 }

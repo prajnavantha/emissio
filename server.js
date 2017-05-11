@@ -10,6 +10,7 @@ var path = require('path');
 console.log(__dirname);
 // app.use(express.static(__dirname + '/dist'))
 app.use('/static', express.static(path.join(__dirname, 'dist')));
+app.use('/assets', express.static(path.join(__dirname, 'assets')));
 // })
 var io = require('socket.io').listen(server);
 
