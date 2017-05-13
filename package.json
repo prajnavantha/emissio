@@ -21,10 +21,17 @@
     "url": "https://github.com/prajnavantha/emissio/issues"
   },
   "dependencies": {
+    "body-parser": "^1.17.1",
     "bootstrap": "^3.3.7",
+    "connect-ensure-login": "^0.1.1",
+    "cookie-parser": "^1.4.3",
     "express": "*",
+    "express-session": "^1.15.2",
     "font-awesome": "^4.7.0",
     "jquery": "^3.2.1",
+    "mongoose": "^4.9.8",
+    "passport": "^0.3.2",
+    "passport-facebook": "^2.1.1",
     "react": "^15.5.4",
     "react-dom": "^15.5.4",
     "react-router-dom": "^4.1.1",

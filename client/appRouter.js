@@ -18,6 +18,7 @@ module.exports = () => (
                 <div className="appWrapper">
                     <Route exact path='/' component={Chat} />
                     <Route path='/login' component={SingnIn} />
+                    <Route path='*' component={SingnIn} />
                 </div>
             </HashRouter>
 

@@ -9,11 +9,11 @@ module.exports =()=> (
                 <form className="form-signin">
                 <h2 className="form-signin-heading text-center">Emissio</h2>
                 <br/>
-                <button className="btn btn-lg btn-primary btn-block fb-submit" type="submit">
+                <a href="/login/facebook" className="btn btn-lg btn-primary btn-block fb-submit" type="submit">
                     <i className="fa fa-facebook-official" style={{marginRight:'5px'}} ></i>
 
                     Log in with Facebook
-                </button>
+                </a>
                 </form>
             </div>
         </div>

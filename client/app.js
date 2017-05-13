@@ -2,16 +2,29 @@
 
 var $ = require("jquery")
 var bootstrap = require('bootstrap');
-var io = require('socket.io-client')
 var bs = require('bootstrap/dist/css/bootstrap.css');
 var styles = require('./css/app.css')
 var React = require('react');
 var ReactDOM = require('react-dom');
 
 
-var AppRoute = require('./appRouter');
+var utils = require('./shared/utils')
+// var Chat = require('./chatView');
+// var SingnIn = require('./signIn');
 
-ReactDOM.render(<AppRoute />, document.getElementById('app'));
+if(! utils.getCookie('accessToken')) {
+
+    require(['./signIn'],function (SingnIn) {
+        ReactDOM.render(<SingnIn />, document.getElementById('app'));
+    })
+
+} else {
+    require(['./mainLayout'],function (Chat) {
+        ReactDOM.render(<Chat />, document.getElementById('app'));
+    })
+}
+
+
 
 
 
