@@ -61,22 +61,36 @@
 }
 
 
+.app-color-white {
+    background-color: #fff;
+}
+
 .app-color-text--white {
     color:#fff;
 }
 
 .app-color-primary {
-    background-color: #0E2EB1 !important;
+    background-color: #7BC4EF !important;
 }
 
 .app-color-secondary {
-    background-color: #fcfcfc !important;
+    background-color: #F1F5F8 !important;
 }
 
 .app-color-lightgrey {
-    background-color: #EFEFEF !important;
+    background-color: #585858 !important;
+}
+.app-color-lightgrey-text {
+    color: #585858 !important;
 }
 
+.app-color-dark {
+    background-color: #434753 !important;
+}
+
+.app-color-dark-grey {
+    background-color: #E8E8E8 !important;
+}
 
 
 
@@ -105,12 +119,13 @@
 }
 
 .usersListView li {
-    padding: 10px;
-    border-bottom: 1px solid #B3A9A9;
+    padding: 16px;
+    border-bottom: 1px solid #575B69;
 }
 
 .usersListView .img-circle {
     border-radius: 50%;
+    border:2px solid #ccc;
 }
 
 .usersListView .chat-body {
@@ -170,5 +185,4 @@
 }
 .emissio-userView-main {
     padding: 0;
-    border-left: 2px solid #ccc;
 }

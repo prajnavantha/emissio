@@ -54,7 +54,13 @@ app.get('/users/:userId', function(req, res) {
             res.status(500).send()
         })
 
+})
 
+app.get('/logout', function(req, res){
+    res.clearCookie('accessToken');
+    req.session.destroy(function (err) {
+        res.redirect('/'); //Inside a callback… bulletproof!
+    });
 })
 
 app.post('/users/follow', function(req, res) {
@@ -246,10 +252,10 @@ function createSocketConnection(id) {
                         console.log(doc);
                         var followers = doc.followers;
                         console.log(followers);
-                        socket.emit('new message', { msg: data, user: {name:doc.name,_id:doc._id} })
+                        io.of(id).emit('new message', { msg: data, user: {name:doc.name,_id:doc._id} })
                         followers.forEach(function (item) {
                             console.log(item);
-                            io.of(item._id).emit('new message', { msg: data, user: {name:doc.name,_id:item._id} })
+                            io.of(item._id).emit('new message', { msg: data, user: {name:doc.name,_id:doc._id} })
                             // io.of('10203135515704253').emit('new message', { msg: data, user: socket.username })
                         })
                     })

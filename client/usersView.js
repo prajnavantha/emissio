@@ -10,7 +10,7 @@ const UserHeader = React.createClass({
     render:function(){
 
         return (
-            <div className="app-color-primary app-color-text--white" style={{padding:'10px'}}>
+            <div className="app-color-text--white app-color-dark" style={{padding:'10px'}}>
                 <div className="flexDisplay flex-justify-space-between flex-align-center">
                     <div><h5>{this.props.text}</h5></div>
                     <div>
@@ -45,7 +45,7 @@ const UserView = React.createClass( {
                             </span>
                                 <div className="chat-body clearfix">
                                     <div className="header">
-                                        <strong className="primary-font">{this.props.user.name}</strong>
+                                        <strong className="app-color-text--white">{this.props.user.name}</strong>
                                         <small className="pull-right text-muted">
                                             <button onClick={this.handleFollow} className="btn btn-default btn-sm">{followText}</button>
                                         </small>
@@ -110,7 +110,7 @@ module.exports = React.createClass({
 
             })
 
-            layout = <div style={{height:'80%'}}>
+            layout = <div style={{height:'100%'}}>
                         <ul className="usersListView">
                          {
                              this.state.users.sort(function(a,b){
@@ -149,7 +149,7 @@ module.exports = React.createClass({
         return (
             <div className="col-md-4 full-height emissio-userView-main flexDisplay flex-direction-column" >
                 <UserHeader text={"Users"} />
-                <div className="flex-full relativePosition flex-direction-column">
+                <div className="flex-full relativePosition flex-direction-column app-color-dark">
                     <div className="full-container-layout">
 
                             {layout}

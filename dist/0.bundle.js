@@ -3579,7 +3579,7 @@ var UserHeader = React.createClass({
 
         return React.createElement(
             'div',
-            { className: 'app-color-primary app-color-text--white', style: { padding: '10px' } },
+            { className: 'app-color-secondary', style: { padding: '10px' } },
             React.createElement(
                 'div',
                 { className: 'flexDisplay flex-justify-space-between flex-align-center' },
@@ -3587,9 +3587,29 @@ var UserHeader = React.createClass({
                     'div',
                     null,
                     React.createElement(
-                        'h5',
-                        null,
-                        this.props.text
+                        'div',
+                        { className: 'flexDisplay flex-align-center' },
+                        React.createElement(
+                            'div',
+                            null,
+                            React.createElement('img', { src: this.props.userInfo.photo, alt: 'User Avatar', 'class': 'img-circle', style: { border: ' 2px solid #055A09', borderRadius: '50%' } })
+                        ),
+                        React.createElement(
+                            'div',
+                            { style: { margin: '0 10px' } },
+                            React.createElement(
+                                'div',
+                                null,
+                                this.props.userInfo.name
+                            ),
+                            React.createElement(
+                                'small',
+                                { className: 'app-color-lightgrey-text' },
+                                'You have ',
+                                this.props.userInfo.followers.length,
+                                ' followers'
+                            )
+                        )
                     )
                 ),
                 React.createElement(
@@ -3597,7 +3617,7 @@ var UserHeader = React.createClass({
                     null,
                     React.createElement(
                         'a',
-                        { className: 'app-color-text--white', style: { padding: '10px', cursor: 'pointer' } },
+                        { onClick: this.props.onLogOut, style: { padding: '10px', cursor: 'pointer' } },
                         React.createElement('i', { className: 'fa fa-2x fa-sign-out ', 'aria-hidden': 'true' })
                     )
                 )
@@ -3683,14 +3703,19 @@ var ChatMsg = React.createClass({
         });
     },
     render: function render() {
+        var self = this;
         var msgStream = this.state.msgs.map(function (item, ind) {
-            return React.createElement(ChatStream, { msg: item, key: ind });
+            return React.createElement(ChatStream, { msg: item, key: ind, userId: self.props.userId });
         });
 
         return React.createElement(
             'div',
-            { style: { height: '80%' } },
-            msgStream
+            { className: 'app-color-dark-grey', style: { height: '80%', overflowY: 'scroll' } },
+            React.createElement(
+                'div',
+                { className: 'container-fluid' },
+                msgStream
+            )
         );
     }
 });
@@ -3700,15 +3725,45 @@ var ChatStream = React.createClass({
 
 
     render: function render() {
+        var chatClass = "row";
+        var userInfo = React.createElement(
+            'h4',
+            { className: 'media-heading' },
+            this.props.msg['user']['name']
+        );
+        var chatStyle = { padding: '20px', borderRadius: '0px 20px 0px 20px' };
+        var chatBlockColor = "app-color-white";
+        if (this.props.msg['user']['_id'] === this.props.userId) {
+            //present user
+            userInfo = "";
+            chatClass += " pull-right";
+            chatStyle = { padding: '20px', borderRadius: '20px 0px 20px 0px' };
+            chatBlockColor += " app-color-primary";
+        }
+
+        var chatBlockClass = "media-body " + chatBlockColor;
         return React.createElement(
             'div',
-            null,
+            { className: chatClass, style: { padding: '10px 5px', width: '70%' } },
             React.createElement(
-                'strong',
-                null,
-                this.props.msg['user']['name']
-            ),
-            this.props.msg['msg']
+                'div',
+                { className: 'col-lg-12' },
+                React.createElement(
+                    'div',
+                    { className: 'media' },
+                    React.createElement(
+                        'div',
+                        { className: chatBlockClass, style: chatStyle },
+                        userInfo,
+                        React.createElement(
+                            'p',
+                            null,
+                            this.props.msg['msg'],
+                            '?'
+                        )
+                    )
+                )
+            )
         );
     }
 });
@@ -3717,6 +3772,12 @@ module.exports = React.createClass({
     displayName: 'exports',
 
 
+    handleLogOut: function handleLogOut() {
+        $.get("/logout").done(function () {
+            console.log("logged out");
+            location.reload();
+        }).fail(function (err) {});
+    },
     handleSend: function handleSend(val) {
         socket.emit('send message', val);
     },
@@ -3725,17 +3786,17 @@ module.exports = React.createClass({
         return React.createElement(
             'div',
             { className: 'col-md-8 full-height emissio-chatView-main flexDisplay flex-direction-column' },
-            React.createElement(UserHeader, { text: this.props.userInfo.name }),
+            React.createElement(UserHeader, { userInfo: this.props.userInfo, onLogOut: this.handleLogOut }),
             React.createElement(
                 'div',
                 { className: 'flex-full relativePosition ' },
                 React.createElement(
                     'div',
                     { className: 'full-container-layout flex-direction-column flexDisplay ' },
-                    React.createElement(ChatMsg, null),
+                    React.createElement(ChatMsg, { userId: this.props.userInfo._id }),
                     React.createElement(
                         'div',
-                        { className: 'flex-full app-color-lightgrey' },
+                        { className: 'flex-full app-color-secondary' },
                         React.createElement(ChatInput, { onSend: this.handleSend })
                     )
                 )
@@ -3942,7 +4003,7 @@ var UserHeader = React.createClass({
 
         return React.createElement(
             'div',
-            { className: 'app-color-primary app-color-text--white', style: { padding: '10px' } },
+            { className: 'app-color-text--white app-color-dark', style: { padding: '10px' } },
             React.createElement(
                 'div',
                 { className: 'flexDisplay flex-justify-space-between flex-align-center' },
@@ -3994,7 +4055,7 @@ var UserView = React.createClass({
                     { className: 'header' },
                     React.createElement(
                         'strong',
-                        { className: 'primary-font' },
+                        { className: 'app-color-text--white' },
                         this.props.user.name
                     ),
                     React.createElement(
@@ -4070,7 +4131,7 @@ module.exports = React.createClass({
 
             layout = React.createElement(
                 'div',
-                { style: { height: '80%' } },
+                { style: { height: '100%' } },
                 React.createElement(
                     'ul',
                     { className: 'usersListView' },
@@ -4109,7 +4170,7 @@ module.exports = React.createClass({
             React.createElement(UserHeader, { text: "Users" }),
             React.createElement(
                 'div',
-                { className: 'flex-full relativePosition flex-direction-column' },
+                { className: 'flex-full relativePosition flex-direction-column app-color-dark' },
                 React.createElement(
                     'div',
                     { className: 'full-container-layout' },
