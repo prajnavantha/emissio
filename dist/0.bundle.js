@@ -205,15 +205,15 @@ Emitter.prototype.hasListeners = function(event){
  * Module dependencies.
  */
 
-var keys = __webpack_require__(256);
-var hasBinary = __webpack_require__(231);
-var sliceBuffer = __webpack_require__(241);
-var after = __webpack_require__(240);
-var utf8 = __webpack_require__(257);
+var keys = __webpack_require__(257);
+var hasBinary = __webpack_require__(233);
+var sliceBuffer = __webpack_require__(243);
+var after = __webpack_require__(242);
+var utf8 = __webpack_require__(258);
 
 var base64encoder;
 if (global && global.ArrayBuffer) {
-  base64encoder = __webpack_require__(246);
+  base64encoder = __webpack_require__(247);
 }
 
 /**
@@ -271,7 +271,7 @@ var err = { type: 'error', data: 'parser error' };
  * Create a blob api even for blob builder when vendor prefixes exist
  */
 
-var Blob = __webpack_require__(247);
+var Blob = __webpack_require__(248);
 
 /**
  * Encodes a packet.
@@ -834,7 +834,7 @@ module.exports = function(a, b){
  * Expose `debug()` as the module.
  */
 
-exports = module.exports = __webpack_require__(254);
+exports = module.exports = __webpack_require__(255);
 exports.log = log;
 exports.formatArgs = formatArgs;
 exports.save = save;
@@ -1027,7 +1027,7 @@ function localstorage() {
  * Expose `debug()` as the module.
  */
 
-exports = module.exports = __webpack_require__(262);
+exports = module.exports = __webpack_require__(263);
 exports.log = log;
 exports.formatArgs = formatArgs;
 exports.save = save;
@@ -1214,6 +1214,300 @@ function localstorage() {
 /***/ 224:
 /***/ (function(module, exports, __webpack_require__) {
 
+"use strict";
+
+
+var $ = __webpack_require__(7);
+
+/*
+ * shows gmail style confirmation box and gives callback on confirm and cancel
+ * @params type confirm Shows confirmation box with ok and cancel
+ * @params type alert shows alert box with ok button
+ * @params data {text:"", head:""} text is body and head is header
+ */
+function confirmationBox(type, data, context, callback) {
+    var popup = $("#popup");
+    if (popup.length == 0) {
+        popup = $("<div/>", {
+            "id": "popup",
+            "style": "display:block;z-index:4000"
+        }).appendTo($('body'));
+    }
+    $("#popup").empty();
+    var pop = $("<div/>", {
+        "style": "position: absolute;top: 0;width: 100% ;background: rgba(255, 255, 255, 0.5);height: 100%;"
+    }).appendTo($("#popup"));
+    var modal_dialogue = $("<div/>", {
+        "class": "modal_dialogue",
+        "style": "margin: 0 auto;width: 40%;margin-top: 10%;background: white;box-shadow: 0 4px 16px rgba(0, 0, 0, .2);"
+    }).appendTo(pop);
+
+    var head = $("<div/>", {
+        "style": "background: #A0A0A0;color: #fff;padding: 20px;"
+    }).appendTo(modal_dialogue);
+    $("<span/>", {
+        "class": "fa fa-lg pull-right",
+        "style": "color:#ccc;cursor:pointer;",
+        "html": "&times;",
+        "click": function click() {
+            if (callback) {
+                callback("cancel", context);
+            }
+            $("#popup").empty();
+            $("#popup").hide();
+        }
+    }).appendTo(head);
+    $("<span/>", {
+        "style": "font-weight:bold",
+        "text": data.head || "Error"
+    }).appendTo(head);
+
+    var textCont = $("<div/>", {}).appendTo(modal_dialogue);
+    $("<div/>", {
+        "style": "padding:20px",
+        "text": data.text
+    }).appendTo(textCont);
+
+    var but = $("<div/>", {
+        "style": "padding: 10px 20px;text-align: right;"
+    }).appendTo(textCont);
+
+    if (type === "confirm") {
+        $("<button/>", {
+            "class": "btn btn-info",
+            "text": "Confirm",
+            "click": function click() {
+                if (callback) {
+                    callback("confirm", context);
+                }
+                $("#popup").empty();
+                $("#popup").hide();
+                // modal_dialogue.remove()
+            }
+        }).appendTo(but);
+        $("<button/>", {
+            "class": "btn btn-info",
+            "text": "Cancel",
+            "click": function click() {
+                if (callback) {
+                    callback("cancel", context);
+                }
+                $("#popup").empty();
+                $("#popup").hide();
+                // modal_dialogue.remove()
+            }
+        }).appendTo(but);
+    } else if (type === "alert") {
+        $("<button/>", {
+            "class": "btn btn-info",
+            "text": "Ok",
+            "click": function click() {
+                if (callback) {
+                    callback("confirm", context);
+                }
+                $("#popup").empty();
+                $("#popup").hide();
+                // modal_dialogue.remove()
+            }
+        }).appendTo(but);
+    }
+    $("#popup").show();
+}
+
+module.exports = {
+    confirmationBox: confirmationBox
+};
+
+/***/ }),
+
+/***/ 225:
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var io = __webpack_require__(261);
+var utils = __webpack_require__(54);
+var socket = io.connect(location.protocol + "//" + window.location.host + '/' + utils.getCookie("accessToken"));
+
+var socketHandler = function socketHandler() {
+    // body...
+
+    this.subscribeList = {};
+    this.uniqueIndex = {}; // just in case if subscriptions happens uniquely
+    this.socket = "";
+    this.loadSocketIO();
+};
+
+socketHandler.prototype.loadSocketIO = function () {
+    var self = this;
+    self.socket = io(location.protocol + "//" + window.location.host + "/" + utils.getCookie("accessToken"));
+    // self.createSocketConnection();
+    self.socket.io.reconnectionAttempts(20);
+
+    self.socket.on("connect", function () {
+        window.isOnline = true;
+        self.handleConnected();
+        self.createSocketConnection();
+        console.log("connection status" + window.isOnline);
+    });
+    self.socket.on("connecting", function () {
+        window.isOnline = false;
+        console.log("connection status" + window.isOnline);
+    });
+    self.socket.on("connect_error", function () {
+        // handleDisconnection()
+        window.isOnline = false;
+        console.log("connection status" + window.isOnline);
+    });
+    self.socket.on("close", function () {
+        // self.handleDisconnection()
+        window.isOnline = false;
+        console.log("connection status" + window.isOnline);
+    });
+    self.socket.on("disconnect", function () {
+        window.isOnline = false;
+        console.log("connection status" + window.isOnline);
+    });
+    self.socket.on("reconnect", function () {
+        window.isOnline = true;
+        console.log("connection status" + window.isOnline);
+    });
+    self.socket.on("reconnecting", function () {
+        window.isOnline = false;
+        console.log("connection status" + window.isOnline);
+    });
+    self.socket.on("reconnect_error", function () {
+        // self.handleDisconnection();
+        window.isOnline = false;
+        console.log("connection status" + window.isOnline);
+    });
+    self.socket.on("reconnect_failed", function () {
+        self.handleDisconnection();
+        // handleDisconnection()
+        window.isOnline = false;
+        console.log("connection status" + window.isOnline);
+    });
+};
+
+socketHandler.prototype.handleDisconnection = function () {
+    // body...
+    var subList = this.subscribeList["disconnect"];
+    subList.forEach(function (item) {
+        var cb = item["cb"];
+        cb();
+    });
+};
+
+socketHandler.prototype.handleConnected = function (first_argument) {
+    // body...
+    var subList = this.subscribeList["connect"];
+    subList.forEach(function (item) {
+        var cb = item["cb"];
+        cb();
+    });
+};
+socketHandler.prototype.createSocketConnection = function () {
+
+    var len = Object.keys(this.subscribeList).length;
+    if (len != 0) {
+        var self = this;
+        self.socket.removeAllListeners();
+        Object.keys(this.subscribeList).forEach(function (item) {
+            var sockObj = item;
+
+            self.doConnect(sockObj, function (bindParams, params) {
+                // console.log(arguments);
+                var socketType = bindParams["type"];
+                var subList = this.subscribeList[socketType];
+                subList.forEach(function (item) {
+                    var cb = item["cb"];
+                    cb(params);
+                });
+            }.bind(self, { type: sockObj }));
+        });
+    }
+};
+
+socketHandler.prototype.emit = function (message_type, msg, cb) {
+    this.socket.emit(message_type, msg, cb);
+};
+
+socketHandler.prototype.subscribe = function (message_type, callback, index) {
+    // body...
+    if (this.subscribeList[message_type]) {
+        this.subscribeList[message_type].push({
+            cb: callback,
+            uid: index
+        });
+        // this.addIndex(message_type,index);
+    } else {
+        // console.log(message_type)
+        this.subscribeList[message_type] = [];
+        this.subscribeList[message_type].push({
+            cb: callback,
+            uid: index
+        });
+
+        console.log(message_type);
+        // this.addIndex(message_type, index);
+        this.doConnect(message_type, function (bindParams, params) {
+            console.log('doConnect');
+            var socketType = bindParams["type"];
+            var subList = this.subscribeList[socketType];
+            subList.forEach(function (item) {
+                console.log(item);
+                var cb = item["cb"];
+                cb(params);
+            });
+        }.bind(this, { type: message_type }));
+    }
+};
+
+socketHandler.prototype.doConnect = function (message_type, callback) {
+    if (this.socket) {
+        this.socket.on(message_type, callback);
+    }
+};
+
+socketHandler.prototype.unSubscribe = function (message_type, functionType, indexValue) {
+    if (this.subscribeList[message_type] && functionType && typeof functionType === "function") {
+        var self = this;
+
+        if (indexValue) {
+            this.subscribeList[message_type].forEach(function (obj, ind) {
+                var func = obj.cb;
+                var uid = obj.uid;
+
+                if (func.toString() === functionType.toString() && uid === indexValue) {
+                    self.subscribeList[message_type].splice(ind);
+                }
+            });
+        } else {
+
+            this.subscribeList[message_type].forEach(function (obj, ind) {
+                var func = obj.cb;
+                if (func.toString() === functionType.toString()) {
+
+                    self.subscribeList[message_type].splice(ind);
+                    // self.updateUniqueIndex(message_type, indexValue, ind);
+                }
+            });
+        }
+    }
+};
+
+if (!window.socketHandler) {
+    window.socketHandler = new socketHandler();
+}
+
+module.exports = window.socketHandler;
+
+/***/ }),
+
+/***/ 226:
+/***/ (function(module, exports, __webpack_require__) {
+
 /**
  * Module dependencies.
  */
@@ -1375,12 +1669,12 @@ Transport.prototype.onClose = function () {
 
 /***/ }),
 
-/***/ 225:
+/***/ 227:
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global) {// browser shim for xmlhttprequest module
 
-var hasCORS = __webpack_require__(258);
+var hasCORS = __webpack_require__(259);
 
 module.exports = function (opts) {
   var xdomain = opts.xdomain;
@@ -1420,7 +1714,7 @@ module.exports = function (opts) {
 
 /***/ }),
 
-/***/ 226:
+/***/ 228:
 /***/ (function(module, exports) {
 
 /**
@@ -1464,7 +1758,7 @@ exports.decode = function(qs){
 
 /***/ }),
 
-/***/ 227:
+/***/ 229:
 /***/ (function(module, exports, __webpack_require__) {
 
 
@@ -1472,11 +1766,11 @@ exports.decode = function(qs){
  * Module dependencies.
  */
 
-var debug = __webpack_require__(265)('socket.io-parser');
+var debug = __webpack_require__(266)('socket.io-parser');
 var Emitter = __webpack_require__(219);
-var hasBin = __webpack_require__(231);
-var binary = __webpack_require__(264);
-var isBuf = __webpack_require__(238);
+var hasBin = __webpack_require__(233);
+var binary = __webpack_require__(265);
+var isBuf = __webpack_require__(240);
 
 /**
  * Protocol version.
@@ -1871,7 +2165,7 @@ function error() {
 
 /***/ }),
 
-/***/ 228:
+/***/ 230:
 /***/ (function(module, exports) {
 
 /**
@@ -1901,17 +2195,17 @@ module.exports = function(obj, fn){
 
 /***/ }),
 
-/***/ 229:
+/***/ 231:
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global) {/**
  * Module dependencies
  */
 
-var XMLHttpRequest = __webpack_require__(225);
-var XHR = __webpack_require__(252);
-var JSONP = __webpack_require__(251);
-var websocket = __webpack_require__(253);
+var XMLHttpRequest = __webpack_require__(227);
+var XHR = __webpack_require__(253);
+var JSONP = __webpack_require__(252);
+var websocket = __webpack_require__(254);
 
 /**
  * Export transports.
@@ -1962,18 +2256,18 @@ function polling (opts) {
 
 /***/ }),
 
-/***/ 230:
+/***/ 232:
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
  * Module dependencies.
  */
 
-var Transport = __webpack_require__(224);
-var parseqs = __webpack_require__(226);
+var Transport = __webpack_require__(226);
+var parseqs = __webpack_require__(228);
 var parser = __webpack_require__(220);
 var inherit = __webpack_require__(221);
-var yeast = __webpack_require__(239);
+var yeast = __webpack_require__(241);
 var debug = __webpack_require__(222)('engine.io-client:polling');
 
 /**
@@ -1987,7 +2281,7 @@ module.exports = Polling;
  */
 
 var hasXHR2 = (function () {
-  var XMLHttpRequest = __webpack_require__(225);
+  var XMLHttpRequest = __webpack_require__(227);
   var xhr = new XMLHttpRequest({ xdomain: false });
   return null != xhr.responseType;
 })();
@@ -2214,7 +2508,7 @@ Polling.prototype.uri = function () {
 
 /***/ }),
 
-/***/ 231:
+/***/ 233:
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global) {/* global Blob File */
@@ -2223,7 +2517,7 @@ Polling.prototype.uri = function () {
  * Module requirements.
  */
 
-var isArray = __webpack_require__(233);
+var isArray = __webpack_require__(235);
 
 var toString = Object.prototype.toString;
 var withNativeBlob = typeof global.Blob === 'function' || toString.call(global.Blob) === '[object BlobConstructor]';
@@ -2284,7 +2578,7 @@ function hasBinary (obj) {
 
 /***/ }),
 
-/***/ 232:
+/***/ 234:
 /***/ (function(module, exports) {
 
 
@@ -2300,7 +2594,7 @@ module.exports = function(arr, obj){
 
 /***/ }),
 
-/***/ 233:
+/***/ 235:
 /***/ (function(module, exports) {
 
 var toString = {}.toString;
@@ -2312,7 +2606,7 @@ module.exports = Array.isArray || function (arr) {
 
 /***/ }),
 
-/***/ 234:
+/***/ 236:
 /***/ (function(module, exports) {
 
 /**
@@ -2358,7 +2652,7 @@ module.exports = function parseuri(str) {
 
 /***/ }),
 
-/***/ 235:
+/***/ 237:
 /***/ (function(module, exports, __webpack_require__) {
 
 
@@ -2366,15 +2660,15 @@ module.exports = function parseuri(str) {
  * Module dependencies.
  */
 
-var eio = __webpack_require__(248);
-var Socket = __webpack_require__(237);
+var eio = __webpack_require__(249);
+var Socket = __webpack_require__(239);
 var Emitter = __webpack_require__(219);
-var parser = __webpack_require__(227);
-var on = __webpack_require__(236);
-var bind = __webpack_require__(228);
+var parser = __webpack_require__(229);
+var on = __webpack_require__(238);
+var bind = __webpack_require__(230);
 var debug = __webpack_require__(223)('socket.io-client:manager');
-var indexOf = __webpack_require__(232);
-var Backoff = __webpack_require__(245);
+var indexOf = __webpack_require__(234);
+var Backoff = __webpack_require__(246);
 
 /**
  * IE6+ hasOwnProperty
@@ -2938,7 +3232,7 @@ Manager.prototype.onreconnect = function () {
 
 /***/ }),
 
-/***/ 236:
+/***/ 238:
 /***/ (function(module, exports) {
 
 
@@ -2969,7 +3263,7 @@ function on (obj, ev, fn) {
 
 /***/ }),
 
-/***/ 237:
+/***/ 239:
 /***/ (function(module, exports, __webpack_require__) {
 
 
@@ -2977,11 +3271,11 @@ function on (obj, ev, fn) {
  * Module dependencies.
  */
 
-var parser = __webpack_require__(227);
+var parser = __webpack_require__(229);
 var Emitter = __webpack_require__(219);
-var toArray = __webpack_require__(268);
-var on = __webpack_require__(236);
-var bind = __webpack_require__(228);
+var toArray = __webpack_require__(269);
+var on = __webpack_require__(238);
+var bind = __webpack_require__(230);
 var debug = __webpack_require__(223)('socket.io-client:socket');
 
 /**
@@ -3391,7 +3685,7 @@ Socket.prototype.compress = function (compress) {
 
 /***/ }),
 
-/***/ 238:
+/***/ 240:
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global) {
@@ -3412,7 +3706,7 @@ function isBuf(obj) {
 
 /***/ }),
 
-/***/ 239:
+/***/ 241:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3488,7 +3782,7 @@ module.exports = yeast;
 
 /***/ }),
 
-/***/ 240:
+/***/ 242:
 /***/ (function(module, exports) {
 
 module.exports = after
@@ -3523,7 +3817,7 @@ function noop() {}
 
 /***/ }),
 
-/***/ 241:
+/***/ 243:
 /***/ (function(module, exports) {
 
 /**
@@ -3559,7 +3853,7 @@ module.exports = function(arraybuffer, start, end) {
 
 /***/ }),
 
-/***/ 242:
+/***/ 244:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3569,7 +3863,8 @@ var React = __webpack_require__(53);
 var ReactDOM = __webpack_require__(52);
 var $ = __webpack_require__(7);
 
-var socket = __webpack_require__(243);
+var socket = __webpack_require__(225);
+var components = __webpack_require__(224);
 
 var UserHeader = React.createClass({
     displayName: 'UserHeader',
@@ -3701,6 +3996,9 @@ var ChatMsg = React.createClass({
         this.setState({
             msgs: msg
         });
+
+        var objDiv = document.getElementById("chatArea"); //not an elegant way but works
+        objDiv.scrollTop = objDiv.scrollHeight;
     },
     render: function render() {
         var self = this;
@@ -3710,7 +4008,7 @@ var ChatMsg = React.createClass({
 
         return React.createElement(
             'div',
-            { className: 'app-color-dark-grey', style: { height: '80%', overflowY: 'scroll' } },
+            { id: 'chatArea', className: 'app-color-dark-grey', style: { height: '80%', overflowY: 'scroll' } },
             React.createElement(
                 'div',
                 { className: 'container-fluid' },
@@ -3758,8 +4056,7 @@ var ChatStream = React.createClass({
                         React.createElement(
                             'p',
                             null,
-                            this.props.msg['msg'],
-                            '?'
+                            this.props.msg['msg']
                         )
                     )
                 )
@@ -3774,9 +4071,13 @@ module.exports = React.createClass({
 
     handleLogOut: function handleLogOut() {
         $.get("/logout").done(function () {
-            console.log("logged out");
             location.reload();
-        }).fail(function (err) {});
+        }).fail(function (err) {
+            components.confirmationBox("alert", {
+                "text": "Could not connect to server",
+                "head": "Alert"
+            });
+        });
     },
     handleSend: function handleSend(val) {
         socket.emit('send message', val);
@@ -3807,184 +4108,7 @@ module.exports = React.createClass({
 
 /***/ }),
 
-/***/ 243:
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var io = __webpack_require__(260);
-var utils = __webpack_require__(54);
-var socket = io.connect(location.protocol + "//" + window.location.host + '/' + utils.getCookie("accessToken"));
-
-var socketHandler = function socketHandler() {
-    // body...
-
-    this.subscribeList = {};
-    this.uniqueIndex = {}; // just in case if subscriptions happens uniquely
-    this.socket = "";
-    this.loadSocketIO();
-};
-
-socketHandler.prototype.loadSocketIO = function () {
-    var self = this;
-    self.socket = io(location.protocol + "//" + window.location.host + "/" + utils.getCookie("accessToken"));
-    // self.createSocketConnection();
-    self.socket.io.reconnectionAttempts(20);
-
-    self.socket.on("connect", function () {
-        window.isOnline = true;
-        self.handleConnected();
-        self.createSocketConnection();
-        console.log("connection status" + window.isOnline);
-    });
-    self.socket.on("connecting", function () {
-        window.isOnline = false;
-        console.log("connection status" + window.isOnline);
-    });
-    self.socket.on("connect_error", function () {
-        // handleDisconnection()
-        window.isOnline = false;
-        console.log("connection status" + window.isOnline);
-    });
-    self.socket.on("close", function () {
-        // self.handleDisconnection()
-        window.isOnline = false;
-        console.log("connection status" + window.isOnline);
-    });
-    self.socket.on("disconnect", function () {
-        window.isOnline = false;
-        console.log("connection status" + window.isOnline);
-    });
-    self.socket.on("reconnect", function () {
-        window.isOnline = true;
-        console.log("connection status" + window.isOnline);
-    });
-    self.socket.on("reconnecting", function () {
-        window.isOnline = false;
-        console.log("connection status" + window.isOnline);
-    });
-    self.socket.on("reconnect_error", function () {
-        // self.handleDisconnection();
-        window.isOnline = false;
-        console.log("connection status" + window.isOnline);
-    });
-    self.socket.on("reconnect_failed", function () {
-        self.handleDisconnection();
-        // handleDisconnection()
-        window.isOnline = false;
-        console.log("connection status" + window.isOnline);
-    });
-};
-
-socketHandler.prototype.handleDisconnection = function () {
-    // body...
-
-};
-
-socketHandler.prototype.handleConnected = function (first_argument) {
-    // body...
-
-};
-socketHandler.prototype.createSocketConnection = function () {
-
-    var len = Object.keys(this.subscribeList).length;
-    if (len != 0) {
-        var self = this;
-        self.socket.removeAllListeners();
-        Object.keys(this.subscribeList).forEach(function (item) {
-            var sockObj = item;
-
-            self.doConnect(sockObj, function (bindParams, params) {
-                // console.log(arguments);
-                var socketType = bindParams["type"];
-                var subList = this.subscribeList[socketType];
-                subList.forEach(function (item) {
-                    var cb = item["cb"];
-                    cb(params);
-                });
-            }.bind(self, { type: sockObj }));
-        });
-    }
-};
-
-socketHandler.prototype.emit = function (message_type, msg, cb) {
-    this.socket.emit(message_type, msg, cb);
-};
-
-socketHandler.prototype.subscribe = function (message_type, callback, index) {
-    // body...
-    if (this.subscribeList[message_type]) {
-        this.subscribeList[message_type].push({
-            cb: callback,
-            uid: index
-        });
-        // this.addIndex(message_type,index);
-    } else {
-        // console.log(message_type)
-        this.subscribeList[message_type] = [];
-        this.subscribeList[message_type].push({
-            cb: callback,
-            uid: index
-        });
-
-        console.log(message_type);
-        // this.addIndex(message_type, index);
-        this.doConnect(message_type, function (bindParams, params) {
-            console.log('doConnect');
-            var socketType = bindParams["type"];
-            var subList = this.subscribeList[socketType];
-            subList.forEach(function (item) {
-                console.log(item);
-                var cb = item["cb"];
-                cb(params);
-            });
-        }.bind(this, { type: message_type }));
-    }
-};
-
-socketHandler.prototype.doConnect = function (message_type, callback) {
-    if (this.socket) {
-        this.socket.on(message_type, callback);
-    }
-};
-
-socketHandler.prototype.unSubscribe = function (message_type, functionType, indexValue) {
-    if (this.subscribeList[message_type] && functionType && typeof functionType === "function") {
-        var self = this;
-
-        if (indexValue) {
-            this.subscribeList[message_type].forEach(function (obj, ind) {
-                var func = obj.cb;
-                var uid = obj.uid;
-
-                if (func.toString() === functionType.toString() && uid === indexValue) {
-                    self.subscribeList[message_type].splice(ind);
-                }
-            });
-        } else {
-
-            this.subscribeList[message_type].forEach(function (obj, ind) {
-                var func = obj.cb;
-                if (func.toString() === functionType.toString()) {
-
-                    self.subscribeList[message_type].splice(ind);
-                    // self.updateUniqueIndex(message_type, indexValue, ind);
-                }
-            });
-        }
-    }
-};
-
-if (!window.socketHandler) {
-    window.socketHandler = new socketHandler();
-}
-
-module.exports = window.socketHandler;
-
-/***/ }),
-
-/***/ 244:
+/***/ 245:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3994,16 +4118,43 @@ var React = __webpack_require__(53);
 var ReactDOM = __webpack_require__(52);
 var utils = __webpack_require__(54);
 var $ = __webpack_require__(7);
+var socket = __webpack_require__(225);
+var components = __webpack_require__(224);
 
 var UserHeader = React.createClass({
     displayName: 'UserHeader',
 
+    getInitialState: function getInitialState() {
+        return {
+            isConnected: true
+        };
+    },
+    componentDidMount: function componentDidMount() {
+        socket.subscribe('disconnect', this.handleDisconnection);
+        socket.subscribe('connect', this.handleConnection);
+    },
+    handleConnection: function handleConnection() {
+        this.setState({
+            isConnected: true
+        });
+    },
+    handleDisconnection: function handleDisconnection() {
+        this.setState({
+            isConnected: false
+        });
+    },
 
     render: function render() {
-
+        var headerClass = "app-color-dark";
+        var text = "Users";
+        if (!this.state.isConnected) {
+            headerClass = "app-color-warning";
+            text = "Disconnected from Server";
+        }
+        headerClass += " app-color-text--white";
         return React.createElement(
             'div',
-            { className: 'app-color-text--white app-color-dark', style: { padding: '10px' } },
+            { className: headerClass, style: { padding: '10px' } },
             React.createElement(
                 'div',
                 { className: 'flexDisplay flex-justify-space-between flex-align-center' },
@@ -4013,7 +4164,7 @@ var UserHeader = React.createClass({
                     React.createElement(
                         'h5',
                         null,
-                        this.props.text
+                        text
                     )
                 ),
                 React.createElement('div', null)
@@ -4030,18 +4181,19 @@ var UserView = React.createClass({
         this.props.onFollow(this.props.user, this.isFollowing);
     },
     render: function render() {
-        var followText = "follow";
+        var followText = "Follow";
         var self = this;
         var user = this.props.following.find(function (item) {
             return item._id === self.props.user._id;
         });
+        this.isFollowing = false;
         if (user) {
             this.isFollowing = true;
-            followText = "unfollow";
+            followText = "Unfollow";
         }
         return React.createElement(
             'li',
-            { className: 'left clearfix' },
+            null,
             React.createElement(
                 'span',
                 { className: 'chat-img pull-left' },
@@ -4052,20 +4204,26 @@ var UserView = React.createClass({
                 { className: 'chat-body clearfix' },
                 React.createElement(
                     'div',
-                    { className: 'header' },
+                    { className: 'flexDisplay flex-justify-space-between ' },
                     React.createElement(
-                        'strong',
-                        { className: 'app-color-text--white' },
-                        this.props.user.name
+                        'div',
+                        null,
+                        React.createElement(
+                            'strong',
+                            { className: 'app-color-text--white' },
+                            this.props.user.name
+                        ),
+                        React.createElement('br', null),
+                        React.createElement(
+                            'small',
+                            { style: { color: '#ccc' } },
+                            this.isFollowing ? "Following" : ""
+                        )
                     ),
                     React.createElement(
-                        'small',
-                        { className: 'pull-right text-muted' },
-                        React.createElement(
-                            'button',
-                            { onClick: this.handleFollow, className: 'btn btn-default btn-sm' },
-                            followText
-                        )
+                        'button',
+                        { onClick: this.handleFollow, style: { height: '35px' }, className: 'btn btn-info btn-sm' },
+                        followText
                     )
                 )
             )
@@ -4084,6 +4242,14 @@ module.exports = React.createClass({
     },
     componentDidMount: function componentDidMount() {
         this.loadUsers();
+        socket.subscribe('new user', this.handleNewUser);
+    },
+    handleNewUser: function handleNewUser(data) {
+        var users = this.state.users;
+        users.push(data);
+        this.setState({
+            users: users
+        });
     },
     loadUsers: function loadUsers() {
         var self = this;
@@ -4092,10 +4258,14 @@ module.exports = React.createClass({
             self.setState({
                 users: response
             });
+        }).fail(function () {
+            components.confirmationBox("alert", {
+                "text": "Could not connect to server",
+                "head": "Alert"
+            });
         });
     },
     handleFollow: function handleFollow(user, isFollowing) {
-        console.log(user);
         var self = this;
         var url = "/users/";
         if (isFollowing) {
@@ -4111,8 +4281,12 @@ module.exports = React.createClass({
             }
         };
         $.post(url, data).then(function (resp) {
-            console.log("reloading users data");
             self.props.onUserUpdate();
+        }).fail(function () {
+            components.confirmationBox("alert", {
+                "text": "Could not connect to server",
+                "head": "Alert"
+            });
         });
     },
 
@@ -4131,7 +4305,7 @@ module.exports = React.createClass({
 
             layout = React.createElement(
                 'div',
-                { style: { height: '100%' } },
+                { style: { height: '100%', overflowY: 'auto' } },
                 React.createElement(
                     'ul',
                     { className: 'usersListView' },
@@ -4167,7 +4341,7 @@ module.exports = React.createClass({
         return React.createElement(
             'div',
             { className: 'col-md-4 full-height emissio-userView-main flexDisplay flex-direction-column' },
-            React.createElement(UserHeader, { text: "Users" }),
+            React.createElement(UserHeader, null),
             React.createElement(
                 'div',
                 { className: 'flex-full relativePosition flex-direction-column app-color-dark' },
@@ -4183,7 +4357,7 @@ module.exports = React.createClass({
 
 /***/ }),
 
-/***/ 245:
+/***/ 246:
 /***/ (function(module, exports) {
 
 
@@ -4275,7 +4449,7 @@ Backoff.prototype.setJitter = function(jitter){
 
 /***/ }),
 
-/***/ 246:
+/***/ 247:
 /***/ (function(module, exports) {
 
 /*
@@ -4349,7 +4523,7 @@ Backoff.prototype.setJitter = function(jitter){
 
 /***/ }),
 
-/***/ 247:
+/***/ 248:
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global) {/**
@@ -4453,20 +4627,20 @@ module.exports = (function() {
 
 /***/ }),
 
-/***/ 248:
-/***/ (function(module, exports, __webpack_require__) {
-
-
-module.exports = __webpack_require__(249);
-
-
-/***/ }),
-
 /***/ 249:
 /***/ (function(module, exports, __webpack_require__) {
 
 
 module.exports = __webpack_require__(250);
+
+
+/***/ }),
+
+/***/ 250:
+/***/ (function(module, exports, __webpack_require__) {
+
+
+module.exports = __webpack_require__(251);
 
 /**
  * Exports parser
@@ -4479,21 +4653,21 @@ module.exports.parser = __webpack_require__(220);
 
 /***/ }),
 
-/***/ 250:
+/***/ 251:
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global) {/**
  * Module dependencies.
  */
 
-var transports = __webpack_require__(229);
+var transports = __webpack_require__(231);
 var Emitter = __webpack_require__(219);
 var debug = __webpack_require__(222)('engine.io-client:socket');
-var index = __webpack_require__(232);
+var index = __webpack_require__(234);
 var parser = __webpack_require__(220);
-var parseuri = __webpack_require__(234);
-var parsejson = __webpack_require__(259);
-var parseqs = __webpack_require__(226);
+var parseuri = __webpack_require__(236);
+var parsejson = __webpack_require__(260);
+var parseqs = __webpack_require__(228);
 
 /**
  * Module exports.
@@ -4626,8 +4800,8 @@ Socket.protocol = parser.protocol; // this is an int
  */
 
 Socket.Socket = Socket;
-Socket.Transport = __webpack_require__(224);
-Socket.transports = __webpack_require__(229);
+Socket.Transport = __webpack_require__(226);
+Socket.transports = __webpack_require__(231);
 Socket.parser = __webpack_require__(220);
 
 /**
@@ -5231,7 +5405,7 @@ Socket.prototype.filterUpgrades = function (upgrades) {
 
 /***/ }),
 
-/***/ 251:
+/***/ 252:
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global) {
@@ -5239,7 +5413,7 @@ Socket.prototype.filterUpgrades = function (upgrades) {
  * Module requirements.
  */
 
-var Polling = __webpack_require__(230);
+var Polling = __webpack_require__(232);
 var inherit = __webpack_require__(221);
 
 /**
@@ -5470,15 +5644,15 @@ JSONPPolling.prototype.doWrite = function (data, fn) {
 
 /***/ }),
 
-/***/ 252:
+/***/ 253:
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global) {/**
  * Module requirements.
  */
 
-var XMLHttpRequest = __webpack_require__(225);
-var Polling = __webpack_require__(230);
+var XMLHttpRequest = __webpack_require__(227);
+var Polling = __webpack_require__(232);
 var Emitter = __webpack_require__(219);
 var inherit = __webpack_require__(221);
 var debug = __webpack_require__(222)('engine.io-client:polling-xhr');
@@ -5891,24 +6065,24 @@ function unloadHandler () {
 
 /***/ }),
 
-/***/ 253:
+/***/ 254:
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global) {/**
  * Module dependencies.
  */
 
-var Transport = __webpack_require__(224);
+var Transport = __webpack_require__(226);
 var parser = __webpack_require__(220);
-var parseqs = __webpack_require__(226);
+var parseqs = __webpack_require__(228);
 var inherit = __webpack_require__(221);
-var yeast = __webpack_require__(239);
+var yeast = __webpack_require__(241);
 var debug = __webpack_require__(222)('engine.io-client:websocket');
 var BrowserWebSocket = global.WebSocket || global.MozWebSocket;
 var NodeWebSocket;
 if (typeof window === 'undefined') {
   try {
-    NodeWebSocket = __webpack_require__(270);
+    NodeWebSocket = __webpack_require__(271);
   } catch (e) { }
 }
 
@@ -6185,7 +6359,7 @@ WS.prototype.check = function () {
 
 /***/ }),
 
-/***/ 254:
+/***/ 255:
 /***/ (function(module, exports, __webpack_require__) {
 
 
@@ -6201,7 +6375,7 @@ exports.coerce = coerce;
 exports.disable = disable;
 exports.enable = enable;
 exports.enabled = enabled;
-exports.humanize = __webpack_require__(255);
+exports.humanize = __webpack_require__(256);
 
 /**
  * The currently active debug mode names, and names to skip.
@@ -6394,7 +6568,7 @@ function coerce(val) {
 
 /***/ }),
 
-/***/ 255:
+/***/ 256:
 /***/ (function(module, exports) {
 
 /**
@@ -6550,7 +6724,7 @@ function plural(ms, n, name) {
 
 /***/ }),
 
-/***/ 256:
+/***/ 257:
 /***/ (function(module, exports) {
 
 
@@ -6576,7 +6750,7 @@ module.exports = Object.keys || function keys (obj){
 
 /***/ }),
 
-/***/ 257:
+/***/ 258:
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(module, global) {var __WEBPACK_AMD_DEFINE_RESULT__;/*! https://mths.be/utf8js v2.1.2 by @mathias */
@@ -6834,11 +7008,11 @@ module.exports = Object.keys || function keys (obj){
 
 }(this));
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(269)(module), __webpack_require__(218)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(270)(module), __webpack_require__(218)))
 
 /***/ }),
 
-/***/ 258:
+/***/ 259:
 /***/ (function(module, exports) {
 
 
@@ -6862,7 +7036,7 @@ try {
 
 /***/ }),
 
-/***/ 259:
+/***/ 260:
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global) {/**
@@ -6901,7 +7075,7 @@ module.exports = function parsejson(data) {
 
 /***/ }),
 
-/***/ 260:
+/***/ 261:
 /***/ (function(module, exports, __webpack_require__) {
 
 
@@ -6909,9 +7083,9 @@ module.exports = function parsejson(data) {
  * Module dependencies.
  */
 
-var url = __webpack_require__(261);
-var parser = __webpack_require__(227);
-var Manager = __webpack_require__(235);
+var url = __webpack_require__(262);
+var parser = __webpack_require__(229);
+var Manager = __webpack_require__(237);
 var debug = __webpack_require__(223)('socket.io-client');
 
 /**
@@ -7011,13 +7185,13 @@ exports.connect = lookup;
  * @api public
  */
 
-exports.Manager = __webpack_require__(235);
-exports.Socket = __webpack_require__(237);
+exports.Manager = __webpack_require__(237);
+exports.Socket = __webpack_require__(239);
 
 
 /***/ }),
 
-/***/ 261:
+/***/ 262:
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global) {
@@ -7025,7 +7199,7 @@ exports.Socket = __webpack_require__(237);
  * Module dependencies.
  */
 
-var parseuri = __webpack_require__(234);
+var parseuri = __webpack_require__(236);
 var debug = __webpack_require__(223)('socket.io-client:url');
 
 /**
@@ -7100,7 +7274,7 @@ function url (uri, loc) {
 
 /***/ }),
 
-/***/ 262:
+/***/ 263:
 /***/ (function(module, exports, __webpack_require__) {
 
 
@@ -7116,7 +7290,7 @@ exports.coerce = coerce;
 exports.disable = disable;
 exports.enable = enable;
 exports.enabled = enabled;
-exports.humanize = __webpack_require__(263);
+exports.humanize = __webpack_require__(264);
 
 /**
  * The currently active debug mode names, and names to skip.
@@ -7309,7 +7483,7 @@ function coerce(val) {
 
 /***/ }),
 
-/***/ 263:
+/***/ 264:
 /***/ (function(module, exports) {
 
 /**
@@ -7465,7 +7639,7 @@ function plural(ms, n, name) {
 
 /***/ }),
 
-/***/ 264:
+/***/ 265:
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global) {/*global Blob,File*/
@@ -7474,8 +7648,8 @@ function plural(ms, n, name) {
  * Module requirements
  */
 
-var isArray = __webpack_require__(233);
-var isBuf = __webpack_require__(238);
+var isArray = __webpack_require__(235);
+var isBuf = __webpack_require__(240);
 var toString = Object.prototype.toString;
 var withNativeBlob = typeof global.Blob === 'function' || toString.call(global.Blob) === '[object BlobConstructor]';
 var withNativeFile = typeof global.File === 'function' || toString.call(global.File) === '[object FileConstructor]';
@@ -7614,7 +7788,7 @@ exports.removeBlobs = function(data, callback) {
 
 /***/ }),
 
-/***/ 265:
+/***/ 266:
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(process) {/**
@@ -7623,7 +7797,7 @@ exports.removeBlobs = function(data, callback) {
  * Expose `debug()` as the module.
  */
 
-exports = module.exports = __webpack_require__(266);
+exports = module.exports = __webpack_require__(267);
 exports.log = log;
 exports.formatArgs = formatArgs;
 exports.save = save;
@@ -7807,7 +7981,7 @@ function localstorage() {
 
 /***/ }),
 
-/***/ 266:
+/***/ 267:
 /***/ (function(module, exports, __webpack_require__) {
 
 
@@ -7823,7 +7997,7 @@ exports.coerce = coerce;
 exports.disable = disable;
 exports.enable = enable;
 exports.enabled = enabled;
-exports.humanize = __webpack_require__(267);
+exports.humanize = __webpack_require__(268);
 
 /**
  * The currently active debug mode names, and names to skip.
@@ -8016,7 +8190,7 @@ function coerce(val) {
 
 /***/ }),
 
-/***/ 267:
+/***/ 268:
 /***/ (function(module, exports) {
 
 /**
@@ -8172,7 +8346,7 @@ function plural(ms, n, name) {
 
 /***/ }),
 
-/***/ 268:
+/***/ 269:
 /***/ (function(module, exports) {
 
 module.exports = toArray
@@ -8192,7 +8366,7 @@ function toArray(list, index) {
 
 /***/ }),
 
-/***/ 269:
+/***/ 270:
 /***/ (function(module, exports) {
 
 module.exports = function(module) {
@@ -8221,7 +8395,7 @@ module.exports = function(module) {
 
 /***/ }),
 
-/***/ 270:
+/***/ 271:
 /***/ (function(module, exports) {
 
 /* (ignored) */
@@ -8238,9 +8412,11 @@ var React = __webpack_require__(53);
 var ReactDOM = __webpack_require__(52);
 var $ = __webpack_require__(7);
 
-var ChatView = __webpack_require__(242);
-var UsersView = __webpack_require__(244);
+var ChatView = __webpack_require__(244);
+var UsersView = __webpack_require__(245);
 var utils = __webpack_require__(54);
+var socket = __webpack_require__(225);
+var components = __webpack_require__(224);
 
 module.exports = React.createClass({
     displayName: 'exports',
@@ -8252,6 +8428,10 @@ module.exports = React.createClass({
         };
     },
     componentDidMount: function componentDidMount() {
+        socket.subscribe('update users', this.handleUserUpdate);
+        this.loadProfileInfo();
+    },
+    handleUserUpdate: function handleUserUpdate() {
         this.loadProfileInfo();
     },
     loadProfileInfo: function loadProfileInfo() {
@@ -8260,7 +8440,12 @@ module.exports = React.createClass({
             self.setState({
                 userData: resp[0]
             });
-        }).fail(function () {});
+        }).fail(function () {
+            components.confirmationBox("alert", {
+                "text": "Could not connect to server",
+                "head": "Alert"
+            });
+        });
     },
     handleUpdate: function handleUpdate(text) {
         this.loadProfileInfo();

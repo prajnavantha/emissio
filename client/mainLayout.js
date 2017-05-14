@@ -1,12 +1,13 @@
 'use strict';
-var  React = require('react');
-var ReactDOM = require('react-dom');
-var $ = require('jquery')
+const  React = require('react');
+const ReactDOM = require('react-dom');
+const $ = require('jquery')
 
 const ChatView = require('./chatUi');
 const UsersView = require('./usersView');
 const utils = require('./shared/utils');
-
+const socket = require('./shared/socketWrapper');
+const components = require('./shared/components');
 
 
 
@@ -20,6 +21,10 @@ module.exports = React.createClass({
             }
     },
     componentDidMount:function () {
+        socket.subscribe('update users',this.handleUserUpdate);
+        this.loadProfileInfo();
+    },
+    handleUserUpdate:function () {
         this.loadProfileInfo();
     },
     loadProfileInfo: function(){
@@ -31,7 +36,10 @@ module.exports = React.createClass({
                 })
             })
             .fail(function() {
-
+                components.confirmationBox("alert",{
+                    "text":"Could not connect to server",
+                    "head":"Alert"
+                })
             })
     },
     handleUpdate:function (text) {

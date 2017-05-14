@@ -33,7 +33,6 @@ mongoose.connect('mongodb://localhost/emissio')
 
 
 app.get('/users', function(req, res) {
-    console.log("here")
     userData
         .find({})
         .then(function(users) {
@@ -64,7 +63,6 @@ app.get('/logout', function(req, res){
 })
 
 app.post('/users/follow', function(req, res) {
-    console.log(req.body)
     var accessToken = req.body.accessToken;
 
     var followUserData = req.body.userInfo;
@@ -74,7 +72,7 @@ app.post('/users/follow', function(req, res) {
     userData.findOne({
         _id:accessToken
     })
-    .then(function(doc,fdfd){
+    .then(function(doc){
         console.log("updating following data")
         userFollowing = doc.following;
         var data = userFollowing.find(function(item) {
@@ -108,6 +106,7 @@ app.post('/users/follow', function(req, res) {
     })
     .then(function(doc) {
             console.log(doc)
+            broadCastAll("update users");
             res.status(200).send()
     })
     .catch(function (err) {
@@ -119,7 +118,6 @@ app.post('/users/follow', function(req, res) {
 })
 
 app.post('/users/unfollow', function(req, res) {
-    console.log(req.body)
     var accessToken = req.body.accessToken;
 
     var followUserData = req.body.userInfo;
@@ -129,7 +127,7 @@ app.post('/users/unfollow', function(req, res) {
         _id:accessToken
     })
     .then(function(doc){
-        console.log("updating following data")
+        console.log("updating unfollowing data")
 
         userFollowing = doc.following;
         var index = -1;
@@ -146,7 +144,6 @@ app.post('/users/unfollow', function(req, res) {
     })
     .then(function(updatedObject){
         console.log("updating followers data");
-        console.log(updatedObject);
         return userData.findOne({
                 _id:followUserData._id
             })
@@ -165,6 +162,7 @@ app.post('/users/unfollow', function(req, res) {
 
     })
     .then(function(doc) {
+            broadCastAll("update users");
             res.status(200).send()
     })
     .catch(function (err) {
@@ -176,6 +174,11 @@ app.post('/users/unfollow', function(req, res) {
 })
 
 
+function broadCastAll(type,msg) {
+    Object.keys(io.nsps).forEach(function (id) {
+        io.of(id).emit(type,msg);
+    })
+}
 
 app.get('/login/facebook',
     passport.authenticate('facebook', { scope: ['email'] }));
@@ -195,7 +198,8 @@ app.get('/login/facebook/return',
         .then(function(doc) {
                 if (!doc) {
                     data.save();
-                    createSocketConnection(data._id)
+                    createSocketConnection(data._id);
+                    broadCastAll("new user",data);
                 }
 
         })
@@ -233,6 +237,7 @@ userData.find(function(err, doc) {
     doc.forEach(function(item) {
         createSocketConnection(item["id"])
     })
+
 })
 
 function createSocketConnection(id) {
@@ -242,19 +247,16 @@ function createSocketConnection(id) {
 
             return function (socket) {
                 socket.on('send message', function(data) {
-                    console.log('msg is', data)
+                    // console.log('msg is', data)
                     //find all the followers and emit to them in for loop
-                    console.log(id);
                     userData.findOne({
                         _id:id
                     })
                     .then(function(doc){
-                        console.log(doc);
                         var followers = doc.followers;
-                        console.log(followers);
                         io.of(id).emit('new message', { msg: data, user: {name:doc.name,_id:doc._id} })
+
                         followers.forEach(function (item) {
-                            console.log(item);
                             io.of(item._id).emit('new message', { msg: data, user: {name:doc.name,_id:doc._id} })
                             // io.of('10203135515704253').emit('new message', { msg: data, user: socket.username })
                         })
@@ -265,60 +267,3 @@ function createSocketConnection(id) {
 
         }(id))
 }
-
-
-
-
-// io.of('10203135515704253')
-//     .on('connection', function(socket) {
-//         console.log('inddddddddddddd')
-//         socket.on('send message', function(data) {
-//             console.log("bahhhhhhhhhh", data)
-//             socket.emit('new message', { msg: data, user: socket.username })
-//         })
-//     })
-//
-// io.sockets.on('connection', function(socket) {
-//
-//     //events here
-//     //
-//     connections.push(socket);
-//     console.log('connected : %s sockets connected', connections.length)
-//
-//
-//     //Disconnected
-//     socket.on('disconnect', function(data) {
-//         //to handle close tab
-//         // if (!socket.username) {
-//         //     return;
-//         // }
-//         users.splice(users.indexOf(socket.username), 1);
-//         updateUserNames();
-//
-//         connections.splice(connections.indexOf(socket), 1);
-//         console.log('Disconnected : %s sockets ', connections.length)
-//     })
-//
-//     // socket.of("10203135515704253").on("send message",function (data) {
-//     //     console.log("this is ddata",data);
-//     // })
-//     socket.on('send message', function(data) {
-//         console.log(data);
-//         //get all followers and emit to them
-//         io.of('10203135515704253').emit('new message', { msg: data, user: socket.username })
-//     })
-//
-//     //shoudl be done on new user login attempt
-//     // socket.on('new user', function(data, callback) {
-//     //     console.log(data);
-//     //     callback(true);
-//     //     socket.username = data;
-//     //     users.push(data);
-//     //     updateUserNames();
-//     // })
-//
-//     function updateUserNames() {
-//         io.sockets.emit('get users', users);
-//     }
-//
-// })

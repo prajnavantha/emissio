@@ -1,9 +1,10 @@
 'use strict'
-var  React = require('react');
-var ReactDOM = require('react-dom');
-var $ = require('jquery');
+const  React = require('react');
+const ReactDOM = require('react-dom');
+const $ = require('jquery');
 
-var socket = require('./shared/socketWrapper');
+const socket = require('./shared/socketWrapper');
+const components = require('./shared/components');
 
 
 const UserHeader = React.createClass({
@@ -108,6 +109,9 @@ const ChatMsg = React.createClass({
             this.setState({
                 msgs:msg
             })
+
+            var objDiv = document.getElementById("chatArea"); //not an elegant way but works
+            objDiv.scrollTop = objDiv.scrollHeight;
     },
     render:function () {
         var self = this;
@@ -117,7 +121,7 @@ const ChatMsg = React.createClass({
 
         return (
 
-            <div className="app-color-dark-grey" style={{height:'80%',overflowY:'scroll'}}>
+            <div id="chatArea" className="app-color-dark-grey" style={{height:'80%',overflowY:'scroll'}}>
                 <div className="container-fluid">
                     {msgStream}
                 </div>
@@ -166,11 +170,13 @@ module.exports = React.createClass({
     handleLogOut:function(){
             $.get("/logout")
             .done(function(){
-                console.log("logged out");
                 location.reload();
             })
             .fail(function (err) {
-
+                components.confirmationBox("alert",{
+                    "text":"Could not connect to server",
+                    "head":"Alert"
+                })
             })
     },
     handleSend:function (val) {

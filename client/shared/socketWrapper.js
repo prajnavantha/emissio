@@ -72,12 +72,21 @@ socketHandler.prototype.loadSocketIO = function() {
 
 socketHandler.prototype.handleDisconnection = function() {
     // body...
+    var subList = this.subscribeList["disconnect"];
+    subList.forEach(function(item) {
+        var cb = item["cb"];
+        cb();
+    })
 
 };
 
 socketHandler.prototype.handleConnected = function(first_argument) {
     // body...
-
+    var subList = this.subscribeList["connect"];
+    subList.forEach(function(item) {
+        var cb = item["cb"];
+        cb();
+    })
 };
 socketHandler.prototype.createSocketConnection = function() {
 

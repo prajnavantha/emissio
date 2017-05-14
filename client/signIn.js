@@ -1,6 +1,6 @@
 'use strict';
-var  React = require('react');
-var ReactDOM = require('react-dom');
+const  React = require('react');
+const ReactDOM = require('react-dom');
 
 
 module.exports =()=> (

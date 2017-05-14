@@ -1,18 +1,46 @@
 'use strict'
-var React = require('react');
-var ReactDOM = require('react-dom');
-var utils = require('./shared/utils');
-var $ = require('jquery');
+const React = require('react');
+const ReactDOM = require('react-dom');
+const utils = require('./shared/utils');
+const $ = require('jquery');
+const socket = require('./shared/socketWrapper');
+const components = require('./shared/components');
+
 
 const UserHeader = React.createClass({
+    getInitialState:function () {
+            return {
+                isConnected:true
+            }
+    },
+    componentDidMount:function () {
+        socket.subscribe('disconnect',this.handleDisconnection);
+        socket.subscribe('connect',this.handleConnection);
 
+    },
+    handleConnection:function () {
+        this.setState({
+            isConnected:true
+        })
+    },
+    handleDisconnection:function () {
+        this.setState({
+            isConnected:false
+        })
+    },
 
     render:function(){
-
+        var headerClass = "app-color-dark";
+        var text = "Users"
+        if(!this.state.isConnected) {
+            headerClass = "app-color-warning";
+            text = "Disconnected from Server"
+        }
+        headerClass += " app-color-text--white"
         return (
-            <div className="app-color-text--white app-color-dark" style={{padding:'10px'}}>
+            <div className={headerClass} style={{padding:'10px'}}>
                 <div className="flexDisplay flex-justify-space-between flex-align-center">
-                    <div><h5>{this.props.text}</h5></div>
+                    <div><h5>{text}</h5></div>
                     <div>
 
                     </div>
@@ -31,26 +59,31 @@ const UserView = React.createClass( {
         this.props.onFollow(this.props.user,this.isFollowing);
     },
     render:function () {
-        var followText = "follow";
+        var followText = "Follow";
         var self = this;
         var user = this.props.following.find(function (item) {
             return (item._id === self.props.user._id)
         })
+        this.isFollowing = false;
         if(user) {
             this.isFollowing = true
-            followText = "unfollow";
+            followText = "Unfollow";
         }
-        return ( <li className="left clearfix"><span className="chat-img pull-left">
+        return ( <li>
+                    <span className="chat-img pull-left">
                                 <img src={this.props.user.photo} alt="User Avatar" className="img-circle" />
-                            </span>
-                                <div className="chat-body clearfix">
-                                    <div className="header">
-                                        <strong className="app-color-text--white">{this.props.user.name}</strong>
-                                        <small className="pull-right text-muted">
-                                            <button onClick={this.handleFollow} className="btn btn-default btn-sm">{followText}</button>
-                                        </small>
+                    </span>
+                    <div className="chat-body clearfix">
+                                    <div className="flexDisplay flex-justify-space-between ">
+                                        <div>
+                                            <strong className="app-color-text--white">{this.props.user.name}</strong>
+                                            <br/>
+                                            <small style={{color:'#ccc'}}>{(this.isFollowing)?"Following":""}</small>
+                                        </div>
+                                        <button onClick={this.handleFollow} style={{height:'35px'}} className="btn btn-info btn-sm">{followText}</button>
+
                                     </div>
-                                </div>
+                    </div>
                 </li>)
     }
 
@@ -64,6 +97,15 @@ module.exports = React.createClass({
     },
     componentDidMount:function() {
         this.loadUsers();
+        socket.subscribe('new user',this.handleNewUser)
+
+    },
+    handleNewUser: function (data) {
+        var users = this.state.users;
+        users.push(data);
+        this.setState({
+            users:users
+        })
     },
     loadUsers: function () {
         var self = this;
@@ -75,9 +117,14 @@ module.exports = React.createClass({
                 })
 
             })
+            .fail(function() {
+                components.confirmationBox("alert",{
+                    "text":"Could not connect to server",
+                    "head":"Alert"
+                })
+            })
     },
     handleFollow: function (user,isFollowing) {
-        console.log(user);
         var self = this;
         var url = "/users/";
         if(isFollowing) {
@@ -94,8 +141,13 @@ module.exports = React.createClass({
         }
         $.post(url,data)
         .then(function (resp) {
-            console.log("reloading users data")
             self.props.onUserUpdate();
+        })
+        .fail(function() {
+            components.confirmationBox("alert",{
+                "text":"Could not connect to server",
+                "head":"Alert"
+            })
         })
     },
 
@@ -110,7 +162,7 @@ module.exports = React.createClass({
 
             })
 
-            layout = <div style={{height:'100%'}}>
+            layout = <div style={{height:'100%',overflowY:'auto'}}>
                         <ul className="usersListView">
                          {
                              this.state.users.sort(function(a,b){
@@ -148,7 +200,7 @@ module.exports = React.createClass({
         }
         return (
             <div className="col-md-4 full-height emissio-userView-main flexDisplay flex-direction-column" >
-                <UserHeader text={"Users"} />
+                <UserHeader />
                 <div className="flex-full relativePosition flex-direction-column app-color-dark">
                     <div className="full-container-layout">
 

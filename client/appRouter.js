@@ -1,17 +1,17 @@
 
 'use strict';
 
-var React = require('react');
-var ReactDOM = require('react-dom');
+const React = require('react');
+const ReactDOM = require('react-dom');
 
-var { HashRouter, Route } = require('react-router-dom');
+const { HashRouter, Route } = require('react-router-dom');
 // var browserHistory = ReactRouter.browserHistory;
 
 
 
 
-var Chat = require('./chatView');
-var SingnIn = require('./signIn');
+const Chat = require('./chatView');
+const SingnIn = require('./signIn');
 
 module.exports = () => (
             <HashRouter>
