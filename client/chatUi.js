@@ -28,7 +28,7 @@ const UserHeader = React.createClass({
 
 
                     <div>
-                        <a onClick={this.props.onLogOut} style={{padding:'10px',cursor:'pointer'}}>
+                        <a onClick={this.props.onLogOut} style={{padding:'10px',cursor:'pointer'}} title="Logout">
                             <i className="fa fa-2x fa-sign-out " aria-hidden="true"></i>
                         </a>
                     </div>
@@ -185,7 +185,7 @@ module.exports = React.createClass({
 
     render:function () {
         return (
-            <div className="col-md-8 full-height emissio-chatView-main flexDisplay flex-direction-column">
+            <div className="col-md-8 col-xs-8 full-height emissio-chatView-main flexDisplay flex-direction-column">
                 <UserHeader userInfo={this.props.userInfo} onLogOut={this.handleLogOut} />
                 <div className="flex-full relativePosition ">
                     <div className="full-container-layout flex-direction-column flexDisplay ">

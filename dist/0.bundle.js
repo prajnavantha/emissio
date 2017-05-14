@@ -3912,7 +3912,7 @@ var UserHeader = React.createClass({
                     null,
                     React.createElement(
                         'a',
-                        { onClick: this.props.onLogOut, style: { padding: '10px', cursor: 'pointer' } },
+                        { onClick: this.props.onLogOut, style: { padding: '10px', cursor: 'pointer' }, title: 'Logout' },
                         React.createElement('i', { className: 'fa fa-2x fa-sign-out ', 'aria-hidden': 'true' })
                     )
                 )
@@ -4086,7 +4086,7 @@ module.exports = React.createClass({
     render: function render() {
         return React.createElement(
             'div',
-            { className: 'col-md-8 full-height emissio-chatView-main flexDisplay flex-direction-column' },
+            { className: 'col-md-8 col-xs-8 full-height emissio-chatView-main flexDisplay flex-direction-column' },
             React.createElement(UserHeader, { userInfo: this.props.userInfo, onLogOut: this.handleLogOut }),
             React.createElement(
                 'div',
@@ -4235,6 +4235,7 @@ var UserView = React.createClass({
 module.exports = React.createClass({
     displayName: 'exports',
 
+    doSort: true,
     getInitialState: function getInitialState() {
         return {
             users: ""
@@ -4301,7 +4302,33 @@ module.exports = React.createClass({
             );
         } else {
 
-            var usersFilter = this.state.users.filter(function (map) {});
+            var usersList = this.state.users;
+            /*Sort only the first time*/
+            if (this.doSort) {
+                this.doSort = false;
+                usersList = usersList.sort(function (a, b) {
+                    var foundA = 1;
+                    var foundB = 1;
+                    self.props.userInfo.following.find(function (item) {
+                        if (item._id === a._id) {
+                            foundA = -1;
+                            return true;
+                        } else if (item._id === b._id) {
+                            foundB = -1;
+                            return true;
+                        }
+                        return false;
+                    });
+
+                    if (foundA === -1) {
+                        return -1;
+                    }
+                    if (foundB === -1) {
+                        return 1;
+                    }
+                    return 0;
+                });
+            }
 
             layout = React.createElement(
                 'div',
@@ -4309,28 +4336,7 @@ module.exports = React.createClass({
                 React.createElement(
                     'ul',
                     { className: 'usersListView' },
-                    this.state.users.sort(function (a, b) {
-                        var foundA = 1;
-                        var foundB = 1;
-                        self.props.userInfo.following.find(function (item) {
-                            if (item._id === a._id) {
-                                foundA = -1;
-                                return true;
-                            } else if (item._id === b._id) {
-                                foundB = -1;
-                                return true;
-                            }
-                            return false;
-                        });
-
-                        if (foundA === -1) {
-                            return -1;
-                        }
-                        if (foundB === -1) {
-                            return 1;
-                        }
-                        return 0;
-                    }).filter(function (item) {
+                    usersList.filter(function (item) {
                         return self.props.userInfo._id !== item._id;
                     }).map(function (item, ind) {
                         return React.createElement(UserView, { key: ind, user: item, following: self.props.userInfo.following, onFollow: self.handleFollow });
@@ -4340,7 +4346,7 @@ module.exports = React.createClass({
         }
         return React.createElement(
             'div',
-            { className: 'col-md-4 full-height emissio-userView-main flexDisplay flex-direction-column' },
+            { className: 'col-md-4 col-xs-4 full-height emissio-userView-main flexDisplay flex-direction-column' },
             React.createElement(UserHeader, null),
             React.createElement(
                 'div',

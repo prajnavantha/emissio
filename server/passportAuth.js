@@ -1,14 +1,14 @@
 var passport = require('passport');
 
 var Strategy = require('passport-facebook').Strategy;
+var config = require('./config')
 
 
 
-//passport
 passport.use(new Strategy({
-    clientID: "787579241399148",//process.env.CLIENT_ID,
-    clientSecret:"ab0ce40e68e4a4889eca4bb9b5215ecb",// process.env.CLIENT_SECRET,
-    callbackURL: 'http://localhost:3000/login/facebook/return',
+    clientID: config.fbClientId,//process.env.CLIENT_ID,
+    clientSecret:config.fbClientSecret,// process.env.CLIENT_SECRET,
+    callbackURL: config.fbCallbackUrl,
     profileFields: ['id', 'displayName', 'photos', 'email']
   },
   function(accessToken, refreshToken, profile, cb) {

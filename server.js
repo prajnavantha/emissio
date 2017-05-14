@@ -28,9 +28,11 @@ app.use(passport.session());
 
 
 /*mongoose connectivity */
-var userData = require('./server/models')
-mongoose.connect('mongodb://localhost/emissio')
 
+
+var mongoose = require('./server/mongooseConnection');
+
+var userData = require('./server/userModel')(mongoose);
 
 app.get('/users', function(req, res) {
     userData
@@ -174,11 +176,7 @@ app.post('/users/unfollow', function(req, res) {
 })
 
 
-function broadCastAll(type,msg) {
-    Object.keys(io.nsps).forEach(function (id) {
-        io.of(id).emit(type,msg);
-    })
-}
+
 
 app.get('/login/facebook',
     passport.authenticate('facebook', { scope: ['email'] }));
@@ -225,9 +223,16 @@ app.get('/', function(req, res) {
 
 
 var io = require('socket.io').listen(server);
+function broadCastAll(type,msg) {
+    Object.keys(io.nsps).forEach(function (id) {
+        // io.of(id).emit(type,msg);
+        socketEmit(id,type,msg);
+    })
+}
+function socketEmit(id,type,msg) {
+    io.of(id).emit(type,msg)
+}
 
-users = [];
-connections = [];
 server.listen(process.env.PORT || 3000)
 console.log('server running...')
 
@@ -254,11 +259,12 @@ function createSocketConnection(id) {
                     })
                     .then(function(doc){
                         var followers = doc.followers;
-                        io.of(id).emit('new message', { msg: data, user: {name:doc.name,_id:doc._id} })
+                        var emitMsg = { msg: data, user: {name:doc.name,_id:doc._id} }
+                        socketEmit(id,'new message',emitMsg);
 
                         followers.forEach(function (item) {
-                            io.of(item._id).emit('new message', { msg: data, user: {name:doc.name,_id:doc._id} })
-                            // io.of('10203135515704253').emit('new message', { msg: data, user: socket.username })
+                            socketEmit(item._id,'new message',emitMsg);
+
                         })
                     })
 

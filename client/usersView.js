@@ -90,6 +90,7 @@ const UserView = React.createClass( {
 })
 
 module.exports = React.createClass({
+    doSort:true,
     getInitialState:function () {
             return {
                 users:""
@@ -158,36 +159,39 @@ module.exports = React.createClass({
             layout = <div className="text-center"><i className="fa fa-spin fa-spinner"></i></div>
         } else {
 
-            var usersFilter = this.state.users.filter(function(map){
+            var usersList = this.state.users;
+            /*Sort only the first time*/
+            if(this.doSort) {
+                this.doSort = false;
+                usersList = usersList.sort(function(a,b){
+                    var foundA = 1;
+                    var foundB = 1;
+                    self.props.userInfo.following.find(function(item){
+                        if(item._id === a._id) {
+                            foundA = -1;
+                            return true;
+                        } else if(item._id === b._id) {
+                            foundB = -1;
+                            return true;
+                        }
+                        return false;
+                    })
 
-            })
+                        if(foundA === -1) {
+                            return -1;
+                        }
+                        if(foundB === -1) {
+                            return 1;
+                        }
+                        return 0;
+
+                })
+            }
 
             layout = <div style={{height:'100%',overflowY:'auto'}}>
                         <ul className="usersListView">
                          {
-                             this.state.users.sort(function(a,b){
-                                 var foundA = 1;
-                                 var foundB = 1;
-                                 self.props.userInfo.following.find(function(item){
-                                     if(item._id === a._id) {
-                                         foundA = -1;
-                                         return true;
-                                     } else if(item._id === b._id) {
-                                         foundB = -1;
-                                         return true;
-                                     }
-                                     return false;
-                                 })
-
-                                     if(foundA === -1) {
-                                         return -1;
-                                     }
-                                     if(foundB === -1) {
-                                         return 1;
-                                     }
-                                     return 0;
-
-                             })
+                             usersList
                              .filter(function(item){
                                  return (self.props.userInfo._id !== item._id)
                              })
@@ -199,7 +203,7 @@ module.exports = React.createClass({
                     </div>
         }
         return (
-            <div className="col-md-4 full-height emissio-userView-main flexDisplay flex-direction-column" >
+            <div className="col-md-4 col-xs-4 full-height emissio-userView-main flexDisplay flex-direction-column" >
                 <UserHeader />
                 <div className="flex-full relativePosition flex-direction-column app-color-dark">
                     <div className="full-container-layout">
