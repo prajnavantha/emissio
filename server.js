@@ -195,9 +195,14 @@ app.get('/login/facebook/return',
         .findOne({ _id: user.id })
         .then(function(doc) {
                 if (!doc) {
-                    data.save();
-                    createSocketConnection(data._id);
-                    broadCastAll("new user",data);
+                    data
+                    .save()
+                    .then(function(){
+                        createSocketConnection(data._id);
+                        broadCastAll("new user",data);
+                    })
+
+
                 }
 
         })
@@ -252,7 +257,7 @@ function createSocketConnection(id) {
 
             return function (socket) {
                 socket.on('send message', function(data) {
-                    // console.log('msg is', data)
+                    console.log('msg is', data)
                     //find all the followers and emit to them in for loop
                     userData.findOne({
                         _id:id
